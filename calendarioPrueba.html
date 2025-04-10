@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <style>
+    body {
+      background-repeat: no-repeat;
+      height: 100vh;
+      font-family: "Open Sans", sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 5% auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+  </style>  
+  <body>
+    <div class="container">
+        <h1>Ver disponibilidad</h1>
+        <label for="birthday">Seleccione una fecha:</label>
+        <input type="date" id="event-date" name="event-date" onchange="cleanList()">
+        <input type="submit" onclick="printDate()" value="Ver">
+        <h2 id="print-text"></h2>
+        <div id="product-list">
+        </div>
+    </div>
+  </body>
+
+  <script>
+
+    function printDate(){
+        var date = document.getElementById("event-date").value;
+        document.getElementById("print-text").textContent = "Productos disponibles para la fecha " + date;
+        getProductsAvailables(date);
+    }
+
+    function getProductsAvailables(date) {
+        var url = "https://script.google.com/macros/s/AKfycbzvR_s4daIu0XDZn7cJ81ET8neSxguilfoNYXa_KEA-XahHspPGFzDudPvBca-hIy7khg/exec?date=" + "'" + date + "'";
+      fetch(url, {
+        method: "GET"
+      }).then( response => response.json())
+        .then( data => {
+            console.log("Response Data: ", data)
+            appendItemInDiv(data.products)
+        })
+        .catch( error => {
+            console.log("Error: ", error);
+        });
+    }   
+
+    function appendItemInDiv(array){
+        var items = document.createElement("ul");
+        items.id = "item-list";
+        for(var i=0;i<array.length;i++){
+            var node = document.createElement("li");
+            var textnode = document.createTextNode(array[i]);
+            node.appendChild(textnode);
+            items.appendChild(node)
+        } 
+        document.getElementById("product-list").appendChild(items);
+    }   
+
+    function cleanList(){
+        var list = document.getElementById("item-list");
+        if(list !== null){
+            list.remove();
+        }
+    }
+
+  </script>
+</html>
