@@ -1,77 +1,181 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-  </head>
-  <style>
-    body {
-      background-repeat: no-repeat;
-      height: 100vh;
-      font-family: "Open Sans", sans-serif;
-    }
-    .container {
-      max-width: 800px;
-      margin: 5% auto;
-      padding: 20px;
-      background-color: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-sizing: border-box;
-    }
-
-  </style>  
-  <body>
-    <div class="container">
-        <h1>Ver disponibilidad</h1>
-        <label for="birthday">Seleccione una fecha:</label>
-        <input type="date" id="event-date" name="event-date" onchange="cleanList()">
-        <input type="submit" onclick="printDate()" value="Ver">
-        <h2 id="print-text"></h2>
-        <div id="product-list">
-        </div>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suena Divertido</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./estilos.css">  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-blue-50 text-gray-800 font-sd">
+  <!-- Header -->
+  <header class="bg-red-sd shadow-md fixed min-w-full">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <span class="icono-nav" onclick="abrirNavMenu()"><i class="fa fa-navicon"></i></span>
+      <img src="./assets/Recurso Logo horizontal.png" alt="Logo SD" class="rounded mx-auto logo-sd bg-green-sd pl-2 pr-2">
+      <nav class="menu">
+        <span class="icono-nav cart-icon" onclick="abrirNav()">
+          <i class="fa fa-shopping-cart"></i>
+          <span id="contador" class="contador-items justify-center items-center hidden"><a id="cantidad-items">0</a></span> 
+        </span>
+      </nav>
     </div>
-  </body>
+  </header>
 
-  <script>
+    <!-- Navbar menu responsive -->
+    <div id="mi-sidenav-menu" class="sidenav-menu">
+      <div>
+        <img src="./assets/Recurso Logo horizontal.png" alt="Logo SD" class="rounded mx-auto logo-sd-menu mb-8">
+        <a class="closebtn" onclick="cerrarNavMenu()">&times;</a>
+      </div>
+      <nav class="pt-4">
+        <div onclick="irADisponibles()" class="opcion-menu"><a>Disponibilidad</a></div>
+        <div onclick="irA('todos-los-productos')" class="opcion-menu"><a>Nuestros productos</a></div>
+        <div onclick="irA('info-importante')" class="opcion-menu"><a>Importante</a></div>
+        <div onclick="irA('nosotros')" class="opcion-menu"><a>Nosotros</a></div>
+        <div onclick="cerrarNavMenu()" class="opcion-menu"><a href="#contacto">Contacto</a></div>
+      </nav>
+    </div>
 
-    function printDate(){
-        var date = document.getElementById("event-date").value;
-        document.getElementById("print-text").textContent = "Productos disponibles para la fecha " + date;
-        getProductsAvailables(date);
-    }
+    <!-- Navbar pedido responsive -->
+    <div id="mi-sidenav" class="sidenav-pedido">
+        <div>
+            <center><h1 class="text-2xl font-bold text-white">Tus productos seleccionados</h1></center>
+            <a class="closebtn" onclick="cerrarNav()">&times;</a>
+            <br>
+            <center><a id="sidenav-subtitle">Agrega productos para armar tu presupuesto</a></center>
+        </div>
+        <div id="items-pedido" class="items-pedido divide-y divide-gray-500"></div>
+        <span class="div-prod-presup div-sum-total">
+            <h4>Total: $</h4>
+            <h4 id="sum-total">0</h4>
+        </span>
+        <button id="btn-send" disabled class="flex items-center bg-gray-400 px-6 py-1 font-extrabold m-4 rounded-lg cursor-default">
+          <p id="send-icon" class="mx-1 text-xl"><i class=" fa fa-whatsapp"></i></p>
+          Enviar pedido
+        </button>
+    </div>
 
-    function getProductsAvailables(date) {
-        var url = "https://script.google.com/macros/s/AKfycbzvR_s4daIu0XDZn7cJ81ET8neSxguilfoNYXa_KEA-XahHspPGFzDudPvBca-hIy7khg/exec?date=" + "'" + date + "'";
-      fetch(url, {
-        method: "GET"
-      }).then( response => response.json())
-        .then( data => {
-            console.log("Response Data: ", data)
-            appendItemInDiv(data.products)
-        })
-        .catch( error => {
-            console.log("Error: ", error);
-        });
-    }   
+    <!-- Hero -->
+    <section id="busqueda-disponibles" class="bg-cream h-screen content-center">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-4">Consulta la disponibilidad por fecha y localidad</h2>
+            <p class="text-lg text-gray-700 mb-6">Podes agregar productos para armar tu presupuesto</p>
+            <!-- Seleccion de fecha -->
+            <label class="text-lg text-gray-700 mb-6" for="calendar">Productos disponibles para la fecha:</label>
+            <input type="date" id="calendar" name="calendar" onchange="resetChanges()" class="text-lg text-gray-700 text-center mb-6 choose-input">
+            <br>
+            <!-- Seleccion de localidad -->
+            <label class="text-lg text-gray-700 mb-6" for="locations">En la localidad: </label>
+            <select name="locations" id="locations" onchange="resetChanges()" class="text-lg text-gray-700 mb-6 choose-input px-4">
+              <option id="--Seleccione localidad--" value="BERAZATEGUI"> -- Seleccione la localidad -- </option>
+            </select>
+            <br>  
+            <button id="btn-search" type="button" onclick="searchProducts()" class="bg-green-sd font-bold px-6 py-3 rounded-lg shadow hover:bg-red-400 transition"> Consultar </button> 
+        </div>
+    </section>
+    <!-- Productos disponibles -->
+    <section id="products-available" class="py-12 bg-cream hidden scroll-top">
+      <div class="max-w-6xl mx-auto px-6">
+        <h3 id="titulo-disponibles" class="text-3xl font-semibold text-center mb-10">🪁 Productos disponibles</h3>
+        <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        </div>
+        <div id="fullpage" style="display: none;">
+          <a id="close-btn-img" class="close-btn-img">&times;</a>
+        </div>
+      </div>
+    </section>
 
-    function appendItemInDiv(array){
-        var items = document.createElement("ul");
-        items.id = "item-list";
-        for(var i=0;i<array.length;i++){
-            var node = document.createElement("li");
-            var textnode = document.createTextNode(array[i]);
-            node.appendChild(textnode);
-            items.appendChild(node)
-        } 
-        document.getElementById("product-list").appendChild(items);
-    }   
+    <!-- Todos los productos -->
+    <section id="todos-los-productos" class="hidden scroll-top">
+        <section class="bg-cream py-12">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold mb-4">Revisá nuestro catalogo completo</h2>
+                <p class="text-lg text-gray-700 mb-6">8 años de experiencia llevando diversión 🎉</p>
+                <br>  
+            </div>
+        </section>
+        <section id="productos" class="py-12 bg-grey">
+          <div class="max-w-6xl mx-auto px-6">
+            <h3 class="text-3xl font-semibold text-center mb-10">🪁 Nuestros Productos</h3>
+            <div id="all-product-list" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+          </div>
+        </section>
+    </section>
 
-    function cleanList(){
-        var list = document.getElementById("item-list");
-        if(list !== null){
-            list.remove();
-        }
-    }
+    <!-- Informacion importante -->
+    <section id="info-importante" class="hidden scroll-top">
+        <section class="bg-cream py-12">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold mb-4">Información importante</h2>
+                <p class="text-lg text-gray-700 mb-6">Alquilamos espacios de juego libre para jugar y divertirse de la forma mas sana y creativa</p>
+                <br>  
+            </div>
+        </section>
+        <section class="py-12 bg-grey">
+          <div class="max-w-6xl mx-auto px-6">
+            <!-- Importante -->
+            <div class="bg-white rounded-lg shadow p-4 text-center">
+              <img src="./assets/Info importante.jpg" alt="informacion" class="mx-auto mb-4 rounded">
+            </div>
+          </div>
+        </section>
+    </section>
 
-  </script>
+    <!-- Sobre el negocio -->
+    <section id="nosotros" class="hidden scroll-top">
+        <section class="py-12 bg-white">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+              <h3 class="text-3xl font-semibold mb-6">Sobre Suena Divertido</h3>
+              <p class="text-lg text-gray-700 max-w-3xl mx-auto">Somos una empresa dedicada a ofrecer ... Lorem ipsum dolor sit amet consectetur adipisicing elit. Omnis repellendus maxime facilis dolorum architecto commodi molestiae soluta ad nam, eius excepturi, minus ipsam, atque iusto eos vitae nesciunt dolor nihil? ... Desde nuestros inicios, nos hemos enfocado en brindar un servicio confiable, rápido y con precios competitivos. Nuestro compromiso es con tu ...</p>
+            </div>
+        </section>
+      
+        <!-- ¿Por qué nosotros? -->
+        <section id="porque" class="bg-cream py-12">
+          <div class="max-w-6xl mx-auto px-6 text-center">
+            <h3 class="text-3xl font-semibold mb-8 text-red-sd">¿Por qué elegir a Suena Divertido?</h3>
+            <div class="grid md:grid-cols-3 gap-8 text-left">
+              <div>
+                <h4 class="text-xl font-bold mb-2">Compromiso Garantizado</h4>
+                <p>Ensamblaje directamente a tu casa respetando cada detalle.</p>
+              </div>
+              <div>
+                <h4 class="text-xl font-bold mb-2">Entrega Express</h4>
+                <p>Servicio personal en ciudades principales.</p>
+              </div>
+              <div>
+                <h4 class="text-xl font-bold mb-2">Calidad Sobresaliente</h4>
+                <p>Productos en excelente estado para resaltar tu evento.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contacto" class="bg-green-sd py-8">
+      <div class="max-w-6xl mx-auto px-6 text-center">
+        <h4 class="text-2xl font-bold mb-4">Contáctanos</h4>
+        <p class="inline-flex items-center"><span class="mx-1 text-xl"><i class="fa fa-envelope"></i></span>contacto@suenaDivertido.com</p>
+        <br>
+        <p class="inline-flex items-center mt-4"><span class="mx-1 text-xl"><i class="fa fa-whatsapp"></i></span>+54 11 2345 6789</p>
+        <div class="mt-4 space-x-4">
+          <a href="#" class="hover:underline inline-flex items-center"><span class="mx-1 text-xl"><i class="fa fa-facebook"></i></span>Suena Divertido Ok</a>
+          <a href="#" class="hover:underline inline-flex items-center"><span class="mx-1 text-xl"><i class="fa fa-instagram"></i></span>@Suena.Divertido</a>
+        </div>
+        <p class="mt-6 text-sm">© 2025 Suena Divertido. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+    <script src="./scripts/homeScripts.js"></script>
+    <script src="./scripts/disponibles.js"></script>
+    <script src="./scripts/productos.js" ></script>
+</body>
+
 </html>
